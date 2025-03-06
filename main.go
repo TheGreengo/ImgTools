@@ -16,11 +16,33 @@ func getRGBA(img image.Image) *image.RGBA {
 }
 
 // get just the R, G, B, or A components
-func getMask(img image.Image, t int) {
-    //R := (t & 0b1000) >> 3
-    //G := (t & 0b0100) >> 2
-    //B := (t & 0b0010) >> 1
-    //A := t & 0b0001
+func getMask(img image.Image, R uint8, G uint8, B uint8) *image.RGBA {
+    temp := getRGBA(img)
+    b    := img.Bounds()
+    w    := b.Max.X
+    h    := b.Max.Y
+
+    for i := 0; i < w; i++ {
+        for j := 0; j < h; j++ {
+            col := temp.At(i, j)
+            r, g, b, a := col.RGBA()
+            rf := uint8(r >> 8)
+            gf := uint8(g >> 8)
+            bf := uint8(b >> 8)
+            af := uint8(a >> 8)
+            if R != 0 {
+                rf = rf >> R
+            }
+            if G != 0 {
+                gf = gf >> G
+            }
+            if B != 0 {
+                bf = bf >> B
+            }
+            temp.Set(i, j, color.RGBA{rf, gf, bf, af})
+        }
+    }
+    return temp
 }
 
 // Returns the image with all colors inverted
@@ -93,7 +115,7 @@ func main() {
 		panic(err)
 	}
 
-    out := getReduced(img, 32)
+    out := getMask(img, 1, 0, 0)
 
     // out.Set(i, j, color.RGBA{   0, 191, 255, 255 })
     // r, g, b, a := img.At(50, 50).RGBA()
