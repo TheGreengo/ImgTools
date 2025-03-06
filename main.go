@@ -34,7 +34,11 @@ func getNeg(img image.Image) *image.RGBA {
         for j := 0; j < h; j++ {
             col := temp.At(i, j)
             r, g, b, a := col.RGBA()
-            temp.Set(i, j, color.RGBA{255 - uint8(r>>8),255 - uint8(g>>8),255 - uint8(b>>8),uint8(a>>8)})
+            rf := 255 - uint8(r >> 8)
+            gf := 255 - uint8(g >> 8)
+            bf := 255 - uint8(b >> 8)
+            af := uint8(a >> 8)
+            temp.Set(i, j, color.RGBA{rf , gf, bf, af})
         }
     }
     return temp
@@ -45,7 +49,24 @@ func getGrid(img image.Image, n int) {
 }
 
 //
-func getReduced(img image.Image, degs int) {
+func getReduced(img image.Image, degs uint8) *image.RGBA {
+    temp := getRGBA(img)
+    b    := img.Bounds()
+    w    := b.Max.X
+    h    := b.Max.Y
+
+    for i := 0; i < w; i++ {
+        for j := 0; j < h; j++ {
+            col := temp.At(i, j)
+            r, g, b, a := col.RGBA()
+            rf := (uint8(r >> 8) / degs) * degs
+            gf := (uint8(g >> 8) / degs) * degs
+            bf := (uint8(b >> 8) / degs) * degs
+            af := (uint8(a >> 8) / degs) * degs
+            temp.Set(i, j, color.RGBA{rf, gf, bf, af})
+        }
+    }
+    return temp
 }
 
 func getEdgesHorz(img image.Image) {
@@ -72,7 +93,7 @@ func main() {
 		panic(err)
 	}
 
-    out := getNeg(img)
+    out := getReduced(img, 32)
 
     // out.Set(i, j, color.RGBA{   0, 191, 255, 255 })
     // r, g, b, a := img.At(50, 50).RGBA()
